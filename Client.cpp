@@ -82,46 +82,55 @@ int main()
 	SOCKET sConnection;
 	SOCKADDR_IN sinType;
 	int nFehlercode = StartWs();
+	if (nFehlercode != 0)
+		return 1;
+
 	sConnection = socket(AF_INET, SOCK_STREAM, 0);
-	
+	if (nFehlercode == INVALID_SOCKET)
+		return 1;
+
 	memset(&sinType, 0, sizeof(sinType));
 	sinType.sin_addr.s_addr = inet_addr("127.0.0.1");
 	sinType.sin_family = AF_INET;
 	sinType.sin_port = htons(12345);
 
 	nFehlercode = connect(sConnection, (SOCKADDR*)&sinType, sizeof(sinType));
+	if (nFehlercode == SOCKET_ERROR)
+		return 1;
 
 	int  Spielerstart;
 	char Spielertyp;
 
-	std::cout << "Auf Spieler Typ warten" << std::endl;
+	std::cout << "Auf Spieler warten" << std::endl;
+
 	nFehlercode = recv(sConnection, &Spielertyp, 1, 0);
-	
-	std::cout << "Spieler Typ erhalten" << std::endl;
+	if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+		return 1;
+
+	std::cout << "Spieler Typ erhalten " << Spielertyp << " erhalten" << std::endl;
 
 	if (Spielertyp == 'X')
 		Spielerstart = 0;
 	else
 		Spielerstart = 1;
 
-	std::cout << "Meinen Namen an Server senden" << std::endl;
 	nFehlercode = send(sConnection, meinName, strlen(meinName), 0);
+	if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+		return 1;
 
-	std::cout << "Gegner namen an Server senden" << std::endl;
 	nFehlercode = recv(sConnection, gegnerName, 30, 0);
-	gegnerName[nFehlercode] = '\0';
+	if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+		return 1;
 
+	gegnerName[nFehlercode] = '\0';
 	std::cout << "Gegnername: " << gegnerName << std::endl;
-	std::cout << "Sie sind Spieler " << Spielertyp << std::endl;
 
 	char Spielbrett[30] = {'1','2','3','4','5','6','7','8', '9' };
 	int  counter = 0;
 	char Gewinner;
+
 	std::cout << "Spiel starten" << std::endl;
-
 	DisplaySpielbrett(Spielbrett);
-
-
 	while (counter < 9)
 	{
 		if (Spielerstart == 0 || Spielerstart % 2 == 0)
@@ -130,6 +139,9 @@ int main()
 			DisplaySpielbrett(Spielbrett);
 			Spielfeldwahl(Spielbrett, Spielertyp);
 			nFehlercode = send(sConnection, Spielbrett, strlen(Spielbrett), 0);
+			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+				return 1;
+
 			DisplaySpielbrett(Spielbrett);
 
 			std::cout << std::endl << "Sie haben ihren Zug gemacht..." << std::endl;
@@ -154,6 +166,9 @@ int main()
 		{
 			std::cout<< std::endl << "Ihr Gegner " << gegnerName << " ist am Zug..." << std::endl;
 			nFehlercode = recv(sConnection, Spielbrett, 30, 0);
+			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+				return 1;
+
 			Spielbrett[nFehlercode] = '\0';
 			std::cout << std::endl << "Ihr Gegener hat seinen zug gemacht..." << std::endl;
 			DisplaySpielbrett(Spielbrett);
