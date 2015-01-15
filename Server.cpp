@@ -33,8 +33,13 @@ int main()
 	SOCKADDR_IN sinType;
 
 	int nFehlercode = StartWs();
+	if (nFehlercode != 0)
+		return 1;
+
 	sConnection = socket(AF_INET, SOCK_STREAM, 0);
-	
+	if (sConnection == INVALID_SOCKET)
+		return 1;
+
 	for (int i = 0; i != MAX; ++i)
 		clients[i] = INVALID_SOCKET;
 
@@ -45,11 +50,15 @@ int main()
 
 
 	nFehlercode = bind(sConnection, (SOCKADDR*)&sinType, sizeof(sinType));
-	nFehlercode = listen(sConnection, MAX);
+	if (nFehlercode == SOCKET_ERROR)
+		return 1;
 
+	nFehlercode = listen(sConnection, MAX);
+	if (nFehlercode == SOCKET_ERROR)
+		return 1;
 
 	while (fullClientsArray(clients) != MAX)
-	{ 
+	{
 		FD_ZERO(&fdSet);
 		FD_SET(sConnection, &fdSet);
 
@@ -64,8 +73,11 @@ int main()
 	char GamePlayerTyp[2] = { 'X', 'O' };
 
 	for (int i = 0; i != MAX; ++i)
+	{
 		nFehlercode = send(clients[i], &GamePlayerTyp[i], 1, 0);
-
+		if (nFehlercode == SOCKET_ERROR || nFehlercode == = )
+			return 1;
+	}
 
 	char client0username[30];
 	char client1username[30];
@@ -75,11 +87,17 @@ int main()
 		if (i == 0)
 		{
 			nFehlercode = recv(clients[0], client0username, 30, 0);
+			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+				return 1;
+
 			client0username[nFehlercode] = '\0';
 		}
 		else if (i == 1)
 		{
 			nFehlercode = recv(clients[1], client1username, 30, 0);
+			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+				return 1;
+
 			client1username[nFehlercode] = '\0';
 		}
 
@@ -88,9 +106,17 @@ int main()
 	for (int i = 0; i != MAX; ++i)
 	{
 		if (i == 0)
-	        	nFehlercode = send(clients[0], client1username, strlen(client1username), 0);
+		{
+			nFehlercode = send(clients[0], client1username, strlen(client1username), 0);
+			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+				return 1;
+		}
 		else if (i == 1)
+		{
 			nFehlercode = send(clients[1], client0username, strlen(client0username), 0);
+			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+				return 1;
+		}
 	}
 
 
@@ -103,6 +129,8 @@ int main()
 		FD_SET(clients[0], &fdSet);
 		FD_SET(clients[1], &fdSet);
 		nFehlercode = select(0, &fdSet, nullptr, nullptr, nullptr);
+		if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+			return 1;
 
 		for (int i = 0; i != MAX; ++i)
 		{
@@ -111,15 +139,27 @@ int main()
 				if (i == 0)
 				{
 					nFehlercode = recv(clients[0], Spielbrett, 30, 0);
+					if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+						return 1;
+
 					Spielbrett[nFehlercode] = '\0';
 					nFehlercode = send(clients[1], Spielbrett, strlen(Spielbrett), 0);
+					if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+						return 1;
+
 				}
 				else
 				{
 
 					nFehlercode = recv(clients[1], Spielbrett, 30, 0);
+					if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+						return 1;
+
 					Spielbrett[nFehlercode] = '\0';
+
 					nFehlercode = send(clients[0], Spielbrett, strlen(Spielbrett), 0);
+					if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
+						return 1;
 				}
 
 			}
