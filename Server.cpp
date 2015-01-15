@@ -33,22 +33,8 @@ int main()
 	SOCKADDR_IN sinType;
 
 	int nFehlercode = StartWs();
-	if (nFehlercode != 0)
-	{
-		std::cout << "Winsocket startup error" << std::endl;
-		std::cout << "Getlasterror:" << GetLastError() << std::endl;
-		return 1;
-	}
-
 	sConnection = socket(AF_INET, SOCK_STREAM, 0);
-
-	if (sConnection == INVALID_SOCKET)
-	{
-		std::cout << "Socket wurde nicht erstellt... " << std::endl;
-		std::cout << "GetLasterror:" << GetLastError() << std::endl;
-		return 1;
-	}
-
+	
 	for (int i = 0; i != MAX; ++i)
 		clients[i] = INVALID_SOCKET;
 
@@ -59,13 +45,6 @@ int main()
 
 
 	nFehlercode = bind(sConnection, (SOCKADDR*)&sinType, sizeof(sinType));
-	if (nFehlercode == SOCKET_ERROR)
-	{
-		std::cout << "Binding Error:" << std::endl;
-		std::cout << "GetLastError:" << GetLastError() << std::endl;
-		return 1;
-	}
-
 	nFehlercode = listen(sConnection, MAX);
 
 
@@ -82,20 +61,10 @@ int main()
 	}
 
 	std::cout << " 2 Verbindungen wurden angenommen " << std::endl;
-
-
 	char GamePlayerTyp[2] = { 'X', 'O' };
 
 	for (int i = 0; i != MAX; ++i)
-	{
 		nFehlercode = send(clients[i], &GamePlayerTyp[i], 1, 0);
-
-		if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
-		{
-			std::cout << "Socket error creating..." << std::endl;
-			return 1;
-		}
-	}
 
 
 	char client0username[30];
@@ -106,50 +75,22 @@ int main()
 		if (i == 0)
 		{
 			nFehlercode = recv(clients[0], client0username, 30, 0);
-			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
-			{
-				std::cout << "Socket error creating..." << std::endl;
-				return 1;
-			}
-
 			client0username[nFehlercode] = '\0';
 		}
 		else if (i == 1)
 		{
 			nFehlercode = recv(clients[1], client1username, 30, 0);
-			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
-			{
-				std::cout << "Socket error creating..." << std::endl;
-				return 1;
-			}
-
 			client1username[nFehlercode] = '\0';
 		}
-		
 
 	}
 
 	for (int i = 0; i != MAX; ++i)
 	{
 		if (i == 0)
-		{
-			nFehlercode = send(clients[0], client1username, strlen(client1username), 0);
-			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
-			{
-				std::cout << "Socket error creating..." << std::endl;
-				return 1;
-			}
-		}
+	        	nFehlercode = send(clients[0], client1username, strlen(client1username), 0);
 		else if (i == 1)
-		{
 			nFehlercode = send(clients[1], client0username, strlen(client0username), 0);
-			if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
-			{
-				std::cout << "Socket error creating..." << std::endl;
-				return 1;
-			}
-		}
-		
 	}
 
 
@@ -161,15 +102,7 @@ int main()
 		FD_ZERO(&fdSet);
 		FD_SET(clients[0], &fdSet);
 		FD_SET(clients[1], &fdSet);
-
 		nFehlercode = select(0, &fdSet, nullptr, nullptr, nullptr);
-
-		if (nFehlercode == SOCKET_ERROR )
-		{
-			std::cout << "Socket error creating..." << std::endl;
-			return 1;
-		}
-
 
 		for (int i = 0; i != MAX; ++i)
 		{
@@ -178,43 +111,15 @@ int main()
 				if (i == 0)
 				{
 					nFehlercode = recv(clients[0], Spielbrett, 30, 0);
-
-					if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
-					{
-						std::cout << "Socket error creating..." << std::endl;
-						return 1;
-					}
-
 					Spielbrett[nFehlercode] = '\0';
-
 					nFehlercode = send(clients[1], Spielbrett, strlen(Spielbrett), 0);
-
-					if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
-					{
-						std::cout << "Socket error creating..." << std::endl;
-						return 1;
-					}
 				}
 				else
 				{
 
 					nFehlercode = recv(clients[1], Spielbrett, 30, 0);
-
-					if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)
-					{
-						std::cout << "Socket error creating..." << std::endl;
-						return 1;
-					}
-
 					Spielbrett[nFehlercode] = '\0';
-
 					nFehlercode = send(clients[0], Spielbrett, strlen(Spielbrett), 0);
-
-					if (nFehlercode == SOCKET_ERROR || nFehlercode == 0)  
-					{
-						std::cout << "Socket error creating..." << std::endl;
-						return 1;
-					}
 				}
 
 			}
