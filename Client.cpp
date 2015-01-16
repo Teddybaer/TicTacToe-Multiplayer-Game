@@ -198,6 +198,8 @@ int main()
 	std::cout << "Es steht unentschieden..." << std::endl;
 	std::cin.sync(); std::cin.clear();
 	std::cin.get();
-
+       
+        closesocket (sConnection);
+        WSACleanup();
 	return 0;
 }
